@@ -13,11 +13,14 @@ contract MiniAMMScript is Script {
     function setUp() public {}
 
     function run() public {
-        vm.startBroadcast();
+        uint256 deployerPrivateKey = vm.envUint("FLARE_PRIVATE_KEY");
+        vm.startBroadcast(deployerPrivateKey);
 
         // Deploy mock ERC20 tokens
-
+        MockERC20 tokenA = new MockERC20("Test USD Token", "tUSD");
+        MockERC20 tokenB = new MockERC20("Test Ether Token", "tETH");
         // Deploy MiniAMM with the tokens
+        MiniAMM amm = new MiniAMM(address(tokenA), address(tokenB));
 
         vm.stopBroadcast();
     }
