@@ -2,11 +2,15 @@
 
 set -e
 
+# Install Node.js and git for extract-addresses.js
+echo "📦 Installing Node.js and git..."
+apt update && apt install -y nodejs npm
+
 echo "🚀 Starting smart contract deployment..."
 
 # Wait for geth-init to complete prefunding
 echo "⏳ Waiting for geth-init to complete prefunding..."
-until [ -f "/shared/geth-init-complete" ]; do
+until [ -f "/geth-init/geth-init-complete" ]; do
   echo "Waiting for geth-init-complete file..."
   sleep 1
 done
@@ -14,20 +18,21 @@ echo "✅ Prefunding completed, proceeding with deployment..."
 
 # Clean up and clone repository fresh
 echo "🧹 Cleaning up previous repository..."
-rm -rf /workspace/cohort-1-assignments-public
-
-cd /workspace
+rm -rf cohort-1-assignments-public
 
 echo "📥 Cloning repository..."
-git clone https://github.com/9oelm/cohort-1-assignments-public.git
+git clone --depth 1 --recurse-submodules=no https://github.com/joonngy/cohort-1-assignments-public.git
 cd cohort-1-assignments-public
 
-# Navigate to the 1a directory
+# Clone submodules manually to avoid .gitmodules issues
+echo "📦 Cloning submodules manually..."
 cd 1a
+rm -rf lib/forge-std lib/openzeppelin-contracts
+git clone --depth 1 https://github.com/foundry-rs/forge-std.git lib/forge-std
+git clone --depth 1 https://github.com/OpenZeppelin/openzeppelin-contracts.git lib/openzeppelin-contracts
 
 # Install dependencies
-echo "📦 Installing dependencies..."
-forge install
+echo "📦 Dependencies already cloned, skipping forge install..."
 
 # Build the project
 echo "🔨 Building project..."
@@ -37,7 +42,7 @@ forge build
 echo "🚀 Deploying MiniAMM contracts..."
 forge script script/MiniAMM.s.sol:MiniAMMScript \
     --rpc-url http://geth:8545 \
-    --private-key be44593f36ac74d23ed0e80569b672ac08fa963ede14b63a967d92739b0c8659 \
+    --private-key f734a372660c9e9b6f2339739982aca447f2d9abce5a8af3612eab7ed7146dbb \
     --broadcast
 
 echo "✅ Deployment completed!"
